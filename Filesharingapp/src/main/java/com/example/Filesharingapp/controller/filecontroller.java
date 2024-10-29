@@ -16,7 +16,7 @@ public class filecontroller {
 
   @GetMapping("/list")
   public String list() {
-    return "list";
+    return "list-files";
   }
 
   @GetMapping("/share")
