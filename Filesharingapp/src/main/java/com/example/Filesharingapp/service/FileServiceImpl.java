@@ -10,12 +10,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.Filesharingapp.entities.FileEntity;
 import com.example.Filesharingapp.model.FileModel;
 import com.example.Filesharingapp.repository.FileRepository;
 
+@Service
 public class FileServiceImpl implements FileService {
 
     @Autowired
