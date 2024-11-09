@@ -74,7 +74,14 @@ public class FileServiceImpl implements FileService {
     @Override
     public ResponseEntity<?> deleteFile(int id) {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteFile'");
+        //throw new UnsupportedOperationException("Unimplemented method 'deleteFile'");
+        Optional<FileEntity> fileEntity = fileRepository.findById(id);
+        if (fileEntity.isPresent()) {
+            fileRepository.delete(fileEntity.get());
+            return ResponseEntity.ok().body("File deleted successfully");
+        } else {
+            throw new FileNotFoundException("File not found");
+        }
     }
 
 }
