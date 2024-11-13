@@ -11,10 +11,15 @@ import java.time.LocalDateTime;
 
 @Repository
 
-public interface FileRepository extends JpaRepository<FileEntity, String> {
-  // auto delete after 24 hours
-  List<FileEntity> findByExpiryDateBefore(LocalDateTime now);
-
+//public interface FileRepository extends JpaRepository<FileEntity, String> {
+//  // auto delete after 24 hours
+//  List<FileEntity> findByExpiryDateBefore(LocalDateTime now);
+//
+//
+//
+//}
+public interface FileRepository extends JpaRepository<FileEntity, Integer> {
+  List<FileEntity> findByExpiryTimeBefore(LocalDateTime now);
   List<FileEntity> findByUserInfo(UserInfo userInfo);
 
 }

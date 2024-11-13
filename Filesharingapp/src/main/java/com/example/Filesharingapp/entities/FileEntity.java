@@ -26,6 +26,10 @@ public class FileEntity{
   @Column(name = "file_data", columnDefinition="LONGBLOB")
   private byte[] fileData;
 
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false) // Foreign key column in FileEntity table
+  private UserInfo userInfo;
+
 
 
 

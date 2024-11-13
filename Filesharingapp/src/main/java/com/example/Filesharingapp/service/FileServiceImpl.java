@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,32 +26,16 @@ public class FileServiceImpl implements FileService {
     @Autowired
     private FileRepository fileRepository;
 
-    // entity to model so that responses can be accessed from backend to the
-    // frontend
-    private FileModel convertToModel(FileEntity entity) {
-        FileModel model = new FileModel();
-        BeanUtils.copyProperties(entity, model);
-        return model;
-    }
 
-    @Override
-    public List<FileModel> getAll() {
-        List<FileEntity> entityList = fileRepository.findAll();
-        return entityList.stream()
-                .map(this::convertToModel)
-                .collect(Collectors.toList());
-    }
 
-    @Override
     public ResponseEntity<?> uploadFile(MultipartFile file, String uploadedBy) throws IOException {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method 'uploadFile'");
+
+
         FileEntity fileEntity = new FileEntity();
         fileEntity.setFileName(file.getOriginalFilename());
         fileEntity.setUploadedBy(uploadedBy);
         fileEntity.setUploadTime(LocalDateTime.now());
         fileEntity.setExpiryTime(LocalDateTime.now().plusDays(1)); // 24 hours expiry
-        // fileEntity.setUserInfo(user);
         fileEntity.setFileData(file.getBytes());
         fileRepository.save(fileEntity);
         FileModel fileModel = new FileModel();
@@ -56,31 +43,73 @@ public class FileServiceImpl implements FileService {
         return ResponseEntity.ok().body(fileModel);
     }
 
+    @SneakyThrows
+    public ResponseEntity<?> getFile(int id)  {
+        Optional<FileEntity> fileEntityOptional = fileRepository.findById(id);
+
+        if (fileEntityOptional.isPresent()) {
+            FileEntity fileEntity = fileEntityOptional.get();
+            FileModel fileModel = new FileModel();
+            BeanUtils.copyProperties(fileEntity, fileModel);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + fileEntity.getFileName() + "\"")
+                    .body(fileModel.getFileData());
+        } else {
+            throw new FileNotFoundException("File not found :) ");
+        }
+    }
+
+    @SneakyThrows
+    public ResponseEntity<?> deleteFile(int id) {
+
+        Optional <FileEntity> entity = fileRepository.findById(id);
+        if(entity.isPresent()){
+            fileRepository.delete(entity.get());
+            return ResponseEntity.ok().body("File Deleted Successfully!...");
+        }
+        else{
+            throw new FileNotFoundException("File not found :) ");
+        }
+
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void deleteExpiredFiles() {
+        List<FileEntity> expiredFiles = fileRepository.findByExpiryTimeBefore(LocalDateTime.now());
+        expiredFiles.forEach(fileRepository::delete);
+        System.out.println("Expired Files deleted at : " + LocalDateTime.now());
+    }
+
+
+    private FileModel convertToModel(FileEntity entity) {
+        FileModel model = new FileModel();
+        BeanUtils.copyProperties(entity, model);
+        return model;
+    }
+
+
+    @Override
+    public List<FileModel> getAllFiles() {
+
+        List<FileEntity> entityList = fileRepository.findAll();
+        return entityList.stream()
+                .map(this::convertToModel)
+                .collect(Collectors.toList());
+    }
+
+    @SneakyThrows
     @Override
     public ResponseEntity<?> shareFile(int id) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method 'shareFile'");
-        Optional<FileEntity> fileEntity = fileRepository.findById(id);
-        if (fileEntity.isPresent()) {
+        Optional <FileEntity> fileEntity = fileRepository.findById(id);
+        if(fileEntity.isPresent()){
             FileEntity file = fileEntity.get();
             FileModel fileModel = new FileModel();
             BeanUtils.copyProperties(file, fileModel);
             return ResponseEntity.ok().body(fileModel);
-        } else {
-            throw new FileNotFoundException("File not found");
         }
-    }
-
-    @Override
-    public ResponseEntity<?> deleteFile(int id) {
-        // TODO Auto-generated method stub
-        //throw new UnsupportedOperationException("Unimplemented method 'deleteFile'");
-        Optional<FileEntity> fileEntity = fileRepository.findById(id);
-        if (fileEntity.isPresent()) {
-            fileRepository.delete(fileEntity.get());
-            return ResponseEntity.ok().body("File deleted successfully");
-        } else {
-            throw new FileNotFoundException("File not found");
+        else{
+            throw new FileNotFoundException("File not found :)");
         }
     }
 
