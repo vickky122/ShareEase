@@ -1,4 +1,4 @@
-# File Sharing Application
+# ShareEase: File Sharing Application
 ## A secured file-sharing application using Spring Boot, Thymeleaf, and MySQL, enabling seamless file uploads, downloads, and sharing while enhancing the overall efficiency of file transfers.
 
 ### Video Walkthrough 📽️
